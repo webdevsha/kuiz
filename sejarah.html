@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Sejarah Tahun 5</title>
+    <!-- Muat naik Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan fon Inter */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        /* Sembunyikan butang radio asal */
+        .custom-radio {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #cbd5e0;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        /* Cipta bulatan dalaman untuk keadaan 'checked' */
+        .custom-radio:checked {
+            border-color: #3b82f6;
+        }
+        .custom-radio:checked::after {
+            content: '';
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        /* Gaya label untuk keadaan 'checked' */
+        .custom-radio:checked + span {
+            font-weight: 600;
+            color: #2563eb;
+        }
+        /* Gaya untuk hover */
+        .option-label:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container max-w-3xl mx-auto p-6 md:p-10 bg-white rounded-xl shadow-2xl my-10">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-800">Kuiz Ujian Sejarah Tahun 5</h1>
+            <p class="text-lg text-gray-600 mt-2">Uji pengetahuan anda tentang semua topik KSSR.</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div id="progressContainer" class="w-full bg-gray-200 rounded-full h-2.5 mb-4" style="display: none;">
+            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <div id="progressText" class="text-center text-lg font-semibold text-gray-700 mb-8" style="display: none;">
+            Soalan 1 / 40
+        </div>
+
+        <!-- Borang Kuiz digantikan dengan container soalan dinamik -->
+        <div id="quizContainer" class="space-y-10">
+            <!-- Soalan-soalan akan dijana oleh JavaScript di sini -->
+        </div>
+
+        <!-- Butang Hantar Dihapuskan -->
+
+        <!-- Keputusan Kuiz -->
+        <div id="resultsContainer" class="text-center mt-10 p-8 bg-blue-50 rounded-lg" style="display: none;">
+            <h2 class="text-3xl font-bold text-blue-900">Keputusan Anda</h2>
+            <div id="score" class="text-5xl font-extrabold text-blue-700 my-4">0 / 40</div>
+            <div id="percentage" class="text-2xl font-semibold text-gray-700"></div>
+            <button id="retryButton" class="mt-8 bg-gray-600 text-white font-bold py-2 px-6 rounded-lg text-lg hover:bg-gray-700 transition-colors duration-300">
+                Cuba Lagi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data Soalan Kuiz
+        const quizData = [
+            // ... (data soalan tidak berubah) ...
+            {
+                question: "1. Apakah gelaran bagi ketua negeri Perlis?",
+                options: ["Sultan", "Raja", "Yamtuan Besar", "Yang di-Pertua Negeri"],
+                answer: "Raja",
+                difficulty: "easy",
+                topic: "Institusi Raja"
+            },
+            {
+                question: "2. Apakah maksud 'daulat' dalam konteks institusi raja?",
+                options: ["Kekuasaan dan kewibawaan raja", "Perjanjian taat setia", "Rakyat yang ingkar", "Alat kebesaran diraja"],
+                answer: "Kekuasaan dan kewibawaan raja",
+                difficulty: "easy",
+                topic: "Institusi Raja"
+            },
+            {
+                question: "3. Apakah agama rasmi Persekutuan Malaysia?",
+                options: ["Buddha", "Hindu", "Kristian", "Islam"],
+                answer: "Islam",
+                difficulty: "easy",
+                topic: "Warisan Islam"
+            },
+            {
+                question: "4. Bukti terawal kedatangan Islam di Terengganu ialah penemuan...",
+                options: ["Batu Nisan", "Batu Bersurat", "Wang Siling", "Tembikar"],
+                answer: "Batu Bersurat",
+                difficulty: "easy",
+                topic: "Warisan Islam"
+            },
+            {
+                question: "5. Apakah bahasa kebangsaan negara kita?",
+                options: ["Bahasa Inggeris", "Bahasa Tamil", "Bahasa Melayu", "Bahasa Mandarin"],
+                answer: "Bahasa Melayu",
+                difficulty: "easy",
+                topic: "Bahasa Melayu"
+            },
+            {
+                question: "6. Apakah maksud 'lingua franca'?",
+                options: ["Bahasa diraja", "Bahasa perantaraan", "Bahasa sastera", "Bahasa kuno"],
+                answer: "Bahasa perantaraan",
+                difficulty: "easy",
+                topic: "Bahasa Melayu"
+            },
+            {
+                question: "7. Kuasa luar yang menjajah Melaka pada tahun 1511 ialah...",
+                options: ["Belanda", "British", "Jepun", "Portugis"],
+                answer: "Portugis",
+                difficulty: "easy",
+                topic: "Kedaulatan Tergugat"
+            },
+            {
+                question: "8. Apakah kuasa luar yang menjajah Tanah Melayu semasa Perang Dunia Kedua?",
+                options: ["Jepun", "Belanda", "Siam", "Amerika"],
+                answer: "Jepun",
+                difficulty: "easy",
+                topic: "Kedaulatan Tergugat"
+            },
+            {
+                question: "9. Siapakah pejuang tempatan yang menentang British di Perak?",
+                options: ["Tok Janggut", "Mat Salleh", "Dato' Maharaja Lela", "Rentap"],
+                answer: "Dato' Maharaja Lela",
+                difficulty: "easy",
+                topic: "Tokoh Tempatan"
+            },
+            {
+                question: "10. Tok Janggut menentang British di negeri...",
+                options: ["Pahang", "Kelantan", "Sarawak", "Terengganu"],
+                answer: "Kelantan",
+                difficulty: "easy",
+                topic: "Tokoh Tempatan"
+            },
+            {
+                question: "11. Bilakah tarikh kemerdekaan Persekutuan Tanah Melayu?",
+                options: ["31 Ogos 1963", "16 September 1963", "31 Ogos 1957", "20 Februari 1956"],
+                answer: "31 Ogos 1957",
+                difficulty: "easy",
+                topic: "Kemerdekaan"
+            },
+            {
+                question: "12. Siapakah yang digelar Bapa Kemerdekaan Malaysia?",
+                options: ["Dato' Onn Ja'afar", "Tun Abdul Razak", "Tunku Abdul Rahman", "Tun Tan Cheng Lock"],
+                answer: "Tunku Abdul Rahman",
+                difficulty: "easy",
+                topic: "Kemerdekaan"
+            },
+            {
+                question: "13. Siapakah Ketua Utama Negara Malaysia?",
+                options: ["Perdana Menteri", "Yang di-Pertuan Agong", "Sultan", "Yang di-Pertua Negeri"],
+                answer: "Yang di-Pertuan Agong",
+                difficulty: "easy",
+                topic: "YDPA"
+            },
+            {
+                question: "14. Berapa lamakah tempoh pemerintahan Yang di-Pertuan Agong?",
+                options: ["3 tahun", "5 tahun", "7 tahun", "Seumur hidup"],
+                answer: "5 tahun",
+                difficulty: "easy",
+                topic: "YDPA"
+            },
+            {
+                question: "15. Apakah cogan kata yang terdapat pada Jata Negara?",
+                options: ["Bersekutu Bertambah Mutu", "Bahasa Jiwa Bangsa", "Malaysia Boleh", "Satu Malaysia"],
+                answer: "Bersekutu Bertambah Mutu",
+                difficulty: "easy",
+                topic: "Jata Negara"
+            },
+            {
+                question: "16. Lima bilah keris pada Jata Negara mewakili...",
+                options: ["Negeri-negeri Selat", "Rukun Islam", "Negeri-negeri Melayu Tidak Bersekutu", "Rukun Negara"],
+                answer: "Negeri-negeri Melayu Tidak Bersekutu",
+                difficulty: "easy",
+                topic: "Jata Negara"
+            },
+            {
+                question: "17. Apakah nama bendera kebangsaan Malaysia?",
+                options: ["Sang Saka Biru", "Merah Putih", "Jalur Gemilang", "Bintang Pecah 14"],
+                answer: "Jalur Gemilang",
+                difficulty: "easy",
+                topic: "Bendera"
+            },
+            {
+                question: "18. Warna kuning pada Jalur Gemilang melambangkan...",
+                options: ["Keberanian rakyat", "Perpaduan kaum", "Kesucian Islam", "Kedaulatan Raja-raja"],
+                answer: "Kedaulatan Raja-raja",
+                difficulty: "easy",
+                topic: "Bendera"
+            },
+            {
+                question: "19. Apakah tajuk lagu kebangsaan kita?",
+                options: ["Negaraku", "Jalur Gemilang", "Malaysiaku", "Tanah Tumpahnya Darahku"],
+                answer: "Negaraku",
+                difficulty: "easy",
+                topic: "Lagu Kebangsaan"
+            },
+            {
+                question: "20. Apakah bunga kebangsaan Malaysia?",
+                options: ["Bunga Mawar", "Bunga Orkid", "Bunga Raya", "Bunga Melur"],
+                answer: "Bunga Raya",
+                difficulty: "easy",
+                topic: "Bunga Kebangsaan"
+            },
+
+            // Aras Sederhana (16 Soalan)
+            {
+                question: "21. Apakah maksud 'waadat' antara Demang Lebar Daun dan Sang Sapurba?",
+                options: ["Perjanjian taat setia antara raja dan rakyat", "Perisytiharan perang", "Undang-undang tubuh kerajaan", "Peraturan perdagangan"],
+                answer: "Perjanjian taat setia antara raja dan rakyat",
+                difficulty: "medium",
+                topic: "Institusi Raja"
+            },
+            {
+                question: "22. Agama Islam dibawa ke Tanah Melayu oleh pedagang dari...",
+                options: ["Arab, China dan India", "Portugis, Belanda dan British", "Siam dan Kemboja", "Timur Tengah sahaja"],
+                answer: "Arab, China dan India",
+                difficulty: "medium",
+                topic: "Warisan Islam"
+            },
+            {
+                question: "23. Apakah corak yang sering digunakan dalam ukiran seni bina Islam?",
+                options: ["Geometri dan flora", "Haiwan dan manusia", "Abstrak", "Ombak dan awan"],
+                answer: "Geometri dan flora",
+                difficulty: "medium",
+                topic: "Warisan Islam"
+            },
+            {
+                question: "24. Perkara 152 dalam Perlembagaan Persekutuan adalah berkaitan dengan...",
+                options: ["Agama Islam", "Institusi Raja", "Bahasa Kebangsaan", "Hak Asasi Manusia"],
+                answer: "Bahasa Kebangsaan",
+                difficulty: "medium",
+                topic: "Bahasa Melayu"
+            },
+            {
+                question: "25. Agensi yang ditubuhkan pada tahun 1956 untuk mengembangkan bahasa Melayu ialah...",
+                options: ["Dewan Bahasa dan Pustaka (DBP)", "Pejabat Karang-Mengarang", "ASAS 50", "Arkib Negara"],
+                answer: "Dewan Bahasa dan Pustaka (DBP)",
+                difficulty: "medium",
+                topic: "Bahasa Melayu"
+            },
+            {
+                question: "26. Negeri-negeri Selat terdiri daripada...",
+                options: ["Perak, Selangor, Pahang", "Kedah, Kelantan, Terengganu", "Pulau Pinang, Melaka, Singapura", "Sabah dan Sarawak"],
+                answer: "Pulau Pinang, Melaka, Singapura",
+                difficulty: "medium",
+                topic: "Kedaulatan Tergugat"
+            },
+            {
+                question: "27. Apakah faktor utama yang mendorong kuasa luar menjajah Tanah Melayu?",
+                options: ["Menyebarkan budaya", "Mencari tapak ketenteraan", "Kekayaan hasil bumi seperti bijih timah", "Membantu pentadbiran tempatan"],
+                answer: "Kekayaan hasil bumi seperti bijih timah",
+                difficulty: "medium",
+                topic: "Kedaulatan Tergugat"
+            },
+            {
+                question: "28. Rentap merupakan pahlawan yang menentang James Brooke di...",
+                options: ["Pahang", "Sabah", "Sarawak", "Naning"],
+                answer: "Sarawak",
+                difficulty: "medium",
+                topic: "Tokoh Tempatan"
+            },
+            {
+                question: "29. Mengapakah Dato' Maharaja Lela menentang J.W.W. Birch di Perak?",
+                options: ["Birch merampas tanah", "Birch campur tangan dalam adat dan cukai", "Birch menghapuskan sistem hamba", "Birch membina balai polis"],
+                answer: "Birch campur tangan dalam adat dan cukai",
+                difficulty: "medium",
+                topic: "Tokoh Tempatan"
+            },
+            {
+                question: "30. Apakah tujuan utama Rombongan Kemerdekaan ke London pada tahun 1956?",
+                options: ["Melawat Ratu England", "Menandatangani perjanjian ketenteraan", "Berunding mengenai tarikh kemerdekaan", "Membuat pinjaman kewangan"],
+                answer: "Berunding mengenai tarikh kemerdekaan",
+                difficulty: "medium",
+                topic: "Kemerdekaan"
+            },
+            {
+                question: "31. Parti Perikatan yang memenangi Pilihan Raya Majlis Perundangan Persekutuan 1955 terdiri daripada...",
+                options: ["UMNO, MCA, MIC", "PAS, DAP, PKR", "UMNO dan PAS", "Parti Negara dan Parti Buruh"],
+                answer: "UMNO, MCA, MIC",
+                difficulty: "medium",
+                topic: "Kemerdekaan"
+            },
+            {
+                question: "32. Siapakah yang memilih Yang di-Pertuan Agong?",
+                options: ["Rakyat melalui pilihan raya", "Perdana Menteri", "Majlis Raja-Raja", "Sultan-sultan negeri"],
+                answer: "Majlis Raja-Raja",
+                difficulty: "medium",
+                topic: "YDPA"
+            },
+            {
+                question: "33. Muskat adalah sejenis...",
+                options: ["Alat muzik diraja", "Senjata diraja", "Pakaian rasmi YDPA", "Makanan istana"],
+                answer: "Pakaian rasmi YDPA",
+                difficulty: "medium",
+                topic: "YDPA"
+            },
+            {
+                question: "34. Dua ekor harimau pada Jata Negara melambangkan...",
+                options: ["Kekayaan fauna", "Keberanian", "Ancaman musuh", "Kekuatan ekonomi"],
+                answer: "Keberanian",
+                difficulty: "medium",
+                topic: "Jata Negara"
+            },
+            {
+                question: "35. Berapakah jumlah jalur pada bendera Jalur Gemilang?",
+                options: ["11", "13", "14", "15"],
+                answer: "14",
+                difficulty: "medium",
+                topic: "Bendera"
+            },
+            {
+                question: "36. Lagu 'Negaraku' adalah berasal daripada lagu rasmi negeri...",
+                options: ["Perak", "Johor", "Selangor", "Kedah"],
+                answer: "Perak",
+                difficulty: "medium",
+                topic: "Lagu Kebangsaan"
+            },
+
+            // Aras Sukar (4 Soalan)
+            {
+                question: "37. Penentangan Dol Said di Naning berjaya pada peringkat awal kerana beliau menggunakan taktik...",
+                options: ["Perang gerila", "Bantuan tentera luar", "Senjata moden", "Perjanjian damai"],
+                answer: "Perang gerila",
+                difficulty: "hard",
+                topic: "Tokoh Tempatan"
+            },
+            {
+                question: "38. Apakah sebab utama orang Melayu menentang penubuhan Malayan Union pada tahun 1946?",
+                options: ["Menaikkan kadar cukai", "Menghapuskan kedaulatan Raja-raja Melayu", "Memperkenalkan tulisan rumi", "Mengharamkan penggunaan Bahasa Melayu"],
+                answer: "Menghapuskan kedaulatan Raja-raja Melayu",
+                difficulty: "hard",
+                topic: "Kemerdekaan"
+            },
+            {
+                question: "39. Siapakah pereka bendera Persekutuan Tanah Melayu (Jalur Gemilang)?",
+                options: ["Tunku Abdul Rahman", "Dato' Onn Ja'afar", "Mohamed Hamzah", "Saiful Bahri"],
+                answer: "Mohamed Hamzah",
+                difficulty: "hard",
+                topic: "Bendera"
+            },
+            {
+                question: "40. Apakah tajuk asal lagu negeri Perak yang kemudiannya diadaptasi menjadi lagu 'Negaraku'?",
+                options: ["Allah Lanjutkan Usia Sultan", "Terang Bulan", "Rahmat Bahagia", "Ibu Pertiwiku"],
+                answer: "Terang Bulan",
+                difficulty: "hard",
+                topic: "Lagu Kebangsaan"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuizData = [];
+
+        const quizContainer = document.getElementById('quizContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const scoreEl = document.getElementById('score');
+        const percentageEl = document.getElementById('percentage');
+        const retryButton = document.getElementById('retryButton');
+        const progressText = document.getElementById('progressText');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+
+        // Fungsi untuk memulakan atau memulakan semula kuiz
+        function startQuiz() {
+            shuffledQuizData = quizData.sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            score = 0;
+            resultsContainer.style.display = 'none';
+            quizContainer.style.display = 'block';
+            progressContainer.style.display = 'block';
+            progressText.style.display = 'block';
+            loadQuestion();
+        }
+
+        // Fungsi untuk memuatkan satu soalan
+        function loadQuestion() {
+            if (currentQuestionIndex >= shuffledQuizData.length) {
+                showResults();
+                return;
+            }
+
+            const currentQuestion = shuffledQuizData[currentQuestionIndex];
+            let options = [];
+            // Kacau pilihan jawapan untuk soalan semasa
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                options.push(
+                    `<li class="border border-gray-200 rounded-lg">
+                        <label class="option-label flex items-center w-full p-4 cursor-pointer">
+                            <input type="radio" name="question${currentQuestionIndex}" value="${option}" class="custom-radio">
+                            <span class="ml-2 text-lg text-gray-800">${option}</span>
+                        </label>
+                    </li>`
+                );
+            });
+
+            quizContainer.innerHTML = `
+                <div class="question-block bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <p class="text-xl font-semibold mb-5 text-gray-900">${currentQuestion.question}</p>
+                    <ul class="options-list space-y-3">
+                        ${options.join('')}
+                    </ul>
+                    <div class="feedback mt-4 text-lg font-medium"></div>
+                    <div class="mt-6 text-center">
+                        <button id="checkAnswerBtn" class="w-full md:w-1/2 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors duration-300 shadow-lg">
+                            Semak Jawapan
+                        </button>
+                        <button id="nextQuestionBtn" class="w-full md:w-1/2 bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-lg hover:bg-green-700 transition-colors duration-300 shadow-lg" style="display: none;">
+                            Soalan Seterusnya
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Kemas kini progress bar dan teks
+            const progressPercent = ((currentQuestionIndex) / shuffledQuizData.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            progressText.textContent = `Soalan ${currentQuestionIndex + 1} / ${shuffledQuizData.length}`;
+        }
+
+        // Fungsi untuk menyemak jawapan
+        function checkAnswer() {
+            const currentQuestion = shuffledQuizData[currentQuestionIndex];
+            const block = quizContainer.querySelector('.question-block');
+            const feedbackEl = block.querySelector('.feedback');
+            const selector = `input[name="question${currentQuestionIndex}"]:checked`;
+            const userAnswer = (block.querySelector(selector) || {}).value;
+
+            if (!userAnswer) {
+                feedbackEl.innerHTML = "Sila pilih satu jawapan.";
+                feedbackEl.className = "feedback mt-4 text-lg font-bold text-yellow-600";
+                return;
+            }
+
+            const correctLabel = block.querySelector(`.custom-radio[value="${currentQuestion.answer}"] + span`);
+            const userLabel = block.querySelector(`.custom-radio[value="${userAnswer}"] + span`);
+
+            // Matikan semua pilihan radio
+            const radioButtons = block.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => {
+                radio.disabled = true;
+                radio.parentElement.classList.remove('option-label:hover');
+                radio.parentElement.classList.add('cursor-not-allowed');
+            });
+
+            // Bandingkan jawapan dan beri maklum balas
+            if (userAnswer === currentQuestion.answer) {
+                score++;
+                feedbackEl.innerHTML = "✓ Betul!";
+                feedbackEl.className = "feedback mt-4 text-lg font-bold text-green-600";
+                if (correctLabel) {
+                    correctLabel.parentElement.parentElement.classList.add('bg-green-100', 'border-green-300');
+                }
+            } else {
+                feedbackEl.innerHTML = `✗ Salah. Jawapan yang betul ialah: <strong>${currentQuestion.answer}</strong>`;
+                feedbackEl.className = "feedback mt-4 text-lg font-bold text-red-600";
+                if (correctLabel) {
+                    correctLabel.parentElement.parentElement.classList.add('bg-green-100', 'border-green-300');
+                }
+                if (userLabel) {
+                    userLabel.parentElement.parentElement.classList.add('bg-red-100', 'border-red-300');
+                }
+            }
+            
+            // Tukar butang "Semak" kepada "Seterusnya"
+            document.getElementById('checkAnswerBtn').style.display = 'none';
+            document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+        }
+
+        // Fungsi untuk ke soalan seterusnya
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        // Fungsi untuk memaparkan keputusan akhir
+        function showResults() {
+            quizContainer.style.display = 'none';
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            resultsContainer.style.display = 'block';
+
+            const finalScore = `${score} / ${shuffledQuizData.length}`;
+            const finalPercentage = `(${(score / shuffledQuizData.length * 100).toFixed(1)}%)`;
+            scoreEl.textContent = finalScore;
+            percentageEl.textContent = finalPercentage;
+
+            progressBar.style.width = '100%'; // Tunjukkan 100% pada akhir
+        }
+
+        // Fungsi untuk cuba lagi (disediakan oleh butang retry)
+        // Fungsi 'startQuiz' akan mengendalikan semua set semula
+
+        // Tambah event listeners
+        document.addEventListener('DOMContentLoaded', startQuiz);
+        retryButton.addEventListener('click', startQuiz); // 'startQuiz' juga berfungsi sebagai 'retryQuiz'
+        
+        // Guna event delegation untuk butang dinamik
+        quizContainer.addEventListener('click', function(event) {
+            if (event.target.id === 'checkAnswerBtn') {
+                checkAnswer();
+            }
+            if (event.target.id === 'nextQuestionBtn') {
+                nextQuestion();
+            }
+        });
+
+    </script>
+</body>
+</html>
