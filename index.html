@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Interaktif Pendidikan Islam Tahun 5</title>
+    <!-- Muat naik Tailwind CSS untuk penggayaan -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan fon Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Kelas untuk jawapan yang betul */
+        .correct-answer {
+            background-color: #d1fae5; /* Tailwind green-100 */
+            border-color: #065f46; /* Tailwind green-800 */
+            color: #065f46;
+        }
+        /* Kelas untuk jawapan yang salah */
+        .wrong-answer {
+            background-color: #fee2e2; /* Tailwind red-100 */
+            border-color: #991b1b; /* Tailwind red-800 */
+            color: #991b1b;
+        }
+        /* Mengelakkan teks dipilih semasa mengklik butang */
+        .option-btn {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+        <!-- Skrin Mula -->
+        <div id="start-screen" class="bg-white p-8 rounded-2xl shadow-xl text-center">
+            <h1 class="text-3xl font-bold text-teal-700 mb-4">Selamat Datang ke Kuiz!</h1>
+            <p class="text-lg text-gray-700 mb-6">Uji kefahaman anda dalam Pendidikan Islam Tahun 5. Kuiz ini mengandungi 40 soalan berdasarkan skop penilaian anda.</p>
+            <p class="text-md text-gray-600 mb-8">Anda akan mendapat maklum balas serta-merta untuk setiap soalan. Selamat berjaya!</p>
+            <button id="start-btn" class="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-md hover:bg-teal-700 transition-colors duration-300">
+                Mulakan Kuiz
+            </button>
+        </div>
+
+        <!-- Skrin Kuiz -->
+        <div id="quiz-screen" class="hidden bg-white p-6 md:p-8 rounded-2xl shadow-xl">
+            <!-- Bahagian Header Kuiz -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-semibold text-teal-600" id="question-counter"></span>
+                    <span class="text-sm font-semibold text-gray-600" id="score-counter">Skor: 0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Bahagian Soalan -->
+            <div class="mb-6">
+                <div class="text-xs font-bold text-gray-500 uppercase mb-2" id="question-category"></div>
+                <h2 class="text-2xl font-bold text-gray-900" id="question-text"></h2>
+            </div>
+
+            <!-- Bahagian Pilihan Jawapan (untuk MCQ) -->
+            <div id="options-container" class="space-y-3 mb-6">
+                <!-- Pilihan jawapan akan dimasukkan oleh JS -->
+            </div>
+
+            <!-- Bahagian Input (untuk Soalan Subjektif) -->
+            <div id="input-container" class="mb-6 hidden">
+                <textarea id="subjective-input" rows="4" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-teal-500 focus:ring-teal-500 transition" placeholder="Tulis jawapan anda di sini..."></textarea>
+            </div>
+
+            <!-- Bahagian Maklum Balas -->
+            <div id="feedback-container" class="hidden p-4 rounded-lg mt-6">
+                <h3 class="text-lg font-bold mb-2" id="feedback-title"></h3>
+                <p class="text-md" id="feedback-explanation"></p>
+            </div>
+
+            <!-- Bahagian Butang Navigasi -->
+            <div class="mt-8 flex justify-end">
+                <button id="submit-btn" class="bg-teal-600 text-white font-semibold py-2 px-8 rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-300">
+                    Hantar
+                </button>
+                <button id="next-btn" class="hidden bg-gray-800 text-white font-semibold py-2 px-8 rounded-lg shadow-md hover:bg-gray-900 transition-colors duration-300">
+                    Soalan Seterusnya &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- Skrin Keputusan -->
+        <div id="results-screen" class="hidden bg-white p-8 rounded-2xl shadow-xl text-center">
+            <h1 class="text-3xl font-bold text-teal-700 mb-4">Tahniah, Kuiz Selesai!</h1>
+            <div class="my-8">
+                <p class="text-lg text-gray-600 mb-2">Skor Akhir Anda:</p>
+                <p class="text-6xl font-extrabold text-gray-800" id="final-score"></p>
+                <p class="text-2xl font-semibold text-gray-700" id="final-percentage"></p>
+            </div>
+            <p class="text-lg text-gray-700 mb-8" id="result-message"></p>
+            <button id="restart-btn" class="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-md hover:bg-teal-700 transition-colors duration-300">
+                Cuba Lagi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Bank Soalan ---
+        const questions = [
+            // 1. Bidang Al-Quran (Tajwid) - 4 Soalan (1E, 3M)
+            {
+                category: "Tajwid (Al-Quran) - Asas",
+                type: "mcq",
+                question: "Berapakah kadar harakat untuk bacaan Mad 'Iwad?",
+                options: ["2 harakat", "4 harakat", "6 harakat", "2, 4 atau 6 harakat"],
+                answer: "2 harakat",
+                explanation: "Mad 'Iwad dibaca dengan panjang 2 harakat apabila berhenti (waqaf) padanya."
+            },
+            {
+                category: "Tajwid (Al-Quran) - Sederhana",
+                type: "mcq",
+                question: "Manakah antara berikut menerangkan syarat Mad Tamkin?",
+                options: [
+                    "Bertemu dua huruf 'Ya', yang pertama sukun, yang kedua berbaris.",
+                    "Bertemu dua huruf 'Ya', yang pertama berbaris Kasrah dan Bertasydid, yang kedua sukun.",
+                    "Bertemu huruf Mad dengan huruf bertasydid.",
+                    "Berhenti pada huruf 'Ya' di akhir kalimah."
+                ],
+                answer: "Bertemu dua huruf 'Ya', yang pertama berbaris Kasrah dan Bertasydid, yang kedua sukun.",
+                explanation: "Contohnya pada kalimah 'النَّبِيِّنَ', di mana (بِيِّ) bertemu (يِّنَ)."
+            },
+            {
+                category: "Tajwid (Al-Quran) - Sederhana",
+                type: "mcq",
+                question: "Apabila anda waqaf pada kalimah 'جَنَّةً' (Jannatan), adakah ia dibaca sebagai Mad 'Iwad?",
+                options: [
+                    "Ya, dibaca 'Jannataa' (2 harakat).",
+                    "Tidak, ia dibaca 'Jannah' (dengan bunyi 'h').",
+                    "Ya, dibaca 'Jannat' (dengan Ta' mati).",
+                    "Tidak, ia dibaca 'Jannatan' (kekal tanwin)."
+                ],
+                answer: "Tidak, ia dibaca 'Jannah' (dengan bunyi 'h').",
+                explanation: "Mad 'Iwad tidak berlaku pada huruf Ta' Marbutah (ة / ًة). Apabila waqaf, ia ditukar menjadi bunyi 'H' (هْ)."
+            },
+            {
+                category: "Tajwid (Al-Quran) - Sederhana",
+                type: "mcq",
+                question: "Manakah antara berikut adalah contoh PASTI bagi Mad Tamkin?",
+                options: ["عَلِيًّا", "النَّبِيِّنَ", "يُحْيِي", "خَبِيرًا"],
+                answer: "النَّبِيِّنَ",
+                explanation: "Kalimah 'النَّB. ' dan 'حُيِّيتُمْ' adalah contoh yang paling jelas menepati syarat Mad Tamkin."
+            },
+
+            // 2. Bidang Hadis - 6 Soalan (2E, 4M)
+            {
+                category: "Hadis - Asas",
+                type: "mcq",
+                question: "Apakah Rukun Islam yang kedua?",
+                options: ["Mengucap Syahadah", "Mendirikan Solat", "Mengeluarkan Zakat", "Berpuasa"],
+                answer: "Mendirikan Solat",
+                explanation: "Asas selepas syahadah ialah solat."
+            },
+            {
+                category: "Hadis - Asas (Subjektif)",
+                type: "subjective",
+                question: "Senaraikan DUA Rukun Islam yang pertama.",
+                answer: "1. Mengucap dua kalimah syahadah\n2. Mendirikan solat",
+                explanation: "Hadis 'Islam dibina atas 5 perkara' menyebut syahadah sebagai yang pertama, diikuti solat."
+            },
+            {
+                category: "Hadis - Sederhana",
+                type: "mcq",
+                question: "Dalam hadis 'Binaan Islam', solat diibaratkan sebagai...",
+                options: ["Tapak (Asas)", "Tiang (Pillars)", "Bumbung (Pelindung)", "Dinding (Pemisah)"],
+                answer: "Tiang (Pillars)",
+                explanation: "Solat adalah 'tiang' agama. Jika tiang runtuh, runtuhlah binaan (agama) seseorang."
+            },
+            {
+                category: "Hadis - Sederhana",
+                type: "mcq",
+                question: "Apakah perbezaan utama antara 'Hadas' dan 'Najis'?",
+                options: [
+                    "Hadas dihilangkan, Najis diangkat.",
+                    "Hadas adalah kotoran nampak (cth: air kencing), Najis adalah keadaan (cth: kentut).",
+                    "Hadas adalah keadaan maknawi (diangkat dgn wuduk/mandi), Najis adalah kotoran fizikal (dihilangkan/dicuci).",
+                    "Tiada perbezaan, kedua-duanya sama."
+                ],
+                answer: "Hadas adalah keadaan maknawi (diangkat dgn wuduk/mandi), Najis adalah kotoran fizikal (dihilangkan/dicuci).",
+                explanation: "Contoh hadas kecil (kentut) diangkat dengan wuduk. Contoh najis (tahi cicak) mesti dicuci."
+            },
+            {
+                category: "Hadis - Sederhana",
+                type: "mcq",
+                question: "Siti telah berwuduk. Semasa solat, dia sedar ada tahi cicak kering di telekungnya. Adakah solatnya sah?",
+                options: [
+                    "Sah, kerana dia sudah berwuduk.",
+                    "Tidak sah, kerana 'bersuci' (dalam hadis) bermaksud mesti suci dari hadas DAN najis.",
+                    "Sah, kerana tahi cicak itu kering.",
+                    "Makruh, tetapi solatnya masih sah."
+                ],
+                answer: "Tidak sah, kerana 'bersuci' (dalam hadis) bermaksud mesti suci dari hadas DAN najis.",
+                explanation: "Syarat sah solat ialah suci daripada hadas (dengan wuduk) dan suci daripada najis (pada badan, pakaian, dan tempat solat)."
+            },
+            {
+                category: "Hadis - Sederhana",
+                type: "mcq",
+                question: "Mengapakah Syahadah diletakkan sebagai Rukun Islam yang pertama?",
+                options: [
+                    "Kerana ia yang paling susah dilakukan.",
+                    "Kerana ia adalah 'kunci' atau 'asas' yang mengesahkan amalan (Rukun) yang lain.",
+                    "Kerana ia hanya perlu disebut sekali seumur hidup.",
+                    "Kerana ia berkaitan dengan Haji."
+                ],
+                answer: "Kerana ia adalah 'kunci' atau 'asas' yang mengesahkan amalan (Rukun) yang lain.",
+                explanation: "Tanpa Syahadah (Tauhid), amalan lain seperti solat dan zakat tidak akan diterima sebagai ibadah Islam."
+            },
+
+            // 3. Bidang Akidah - 8 Soalan (2E, 6M)
+            {
+                category: "Akidah - Asas",
+                type: "mcq",
+                question: "Apakah maksud Syirik?",
+                options: ["Melakukan dosa kecil", "Tidak percaya kepada Rasul", "Menyekutukan Allah", "Mengingkari Hari Akhirat"],
+                answer: "Menyekutukan Allah",
+                explanation: "Syirik adalah dosa paling besar, iaitu meletakkan sesuatu setara dengan Allah."
+            },
+            {
+                category: "Akidah - Asas (Subjektif)",
+                type: "subjective",
+                question: "Beriman kepada Hari Akhirat adalah Rukun Iman yang kelima. Senaraikan DUA nama lain bagi Hari Akhirat.",
+                answer: "1. Yaumul Qiyamah (Hari Kebangkitan)\n2. Yaumud Din (Hari Pembalasan)\n(Jawapan lain: Yaumul Hisab, Yaumul Hasyr, dll)",
+                explanation: "Terdapat banyak nama bagi Hari Akhirat di dalam Al-Quran."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Apakah perbezaan utama antara Syirik Jali dan Syirik Khafi?",
+                options: [
+                    "Jali (jelas/nyata, cth: sembah berhala), Khafi (tersembunyi, cth: riya').",
+                    "Jali (kecil), Khafi (besar).",
+                    "Jali (membatalkan puasa), Khafi (membatalkan wuduk).",
+                    "Jali (dilakukan orang tua), Khafi (dilakukan orang muda)."
+                ],
+                answer: "Jali (jelas/nyata, cth: sembah berhala), Khafi (tersembunyi, cth: riya').",
+                explanation: "Syirik Jali membatalkan iman. Syirik Khafi membatalkan pahala amalan."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Adam bersedekah RM20 kepada tabung masjid. Dalam hatinya, dia berharap rakan-rakannya nampak dan memujinya. Perbuatan ini dinamakan...",
+                options: ["Ujub (Bangga diri)", "Riya' (Menunjuk-nunjuk)", "Syirik Jali", "Khurafat"],
+                answer: "Riya' (Menunjuk-nunjuk)",
+                explanation: "Riya' adalah contoh Syirik Khafi (kecil) yang boleh menghapuskan pahala sedekah."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Apakah yang dimaksudkan dengan 'Al-Mizan' pada Hari Akhirat?",
+                options: ["Titian yang merentasi neraka", "Padang perhimpunan", "Alat penimbang amalan baik dan buruk", "Proses pengiraan amalan"],
+                answer: "Alat penimbang amalan baik dan buruk",
+                explanation: "Hisab adalah proses 'pengiraan', manakala Mizan adalah 'penimbangan' amalan tersebut."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Bagaimanakah kepercayaan kepada 'Yaumul Hisab' (Hari Perhitungan) sepatutnya mempengaruhi adab komunikasi kita?",
+                options: [
+                    "Kita akan bercakap lebih kuat.",
+                    "Kita akan lebih berhati-hati kerana sedar setiap perkataan (ghibah, fitnah) akan dihisab.",
+                    "Kita akan banyak berdiam diri dan tidak bercakap.",
+                    "Tiada kaitan antara Hari Akhirat dan cara bercakap."
+                ],
+                answer: "Kita akan lebih berhati-hati kerana sedar setiap perkataan (ghibah, fitnah) akan dihisab.",
+                explanation: "Iman kepada Hari Akhirat (Rukun Iman) sepatutnya menjadikan adab dan akhlak (Adab) kita lebih baik."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Manakah antara berikut adalah contoh Syirik Jali?",
+                options: [
+                    "Solat kerana ingin dipuji guru.",
+                    "Percaya bahawa tangkal boleh menyelamatkan diri dari kemalangan.",
+                    "Berasa bangga dengan kebijaksanaan diri sendiri.",
+                    "Malas menunaikan solat."
+                ],
+                answer: "Percaya bahawa tangkal boleh menyelamatkan diri dari kemalangan.",
+                explanation: "Ini adalah Syirik Jali kerana meletakkan kuasa penyembuh/pelindung kepada objek, selain Allah."
+            },
+            {
+                category: "Akidah - Sederhana",
+                type: "mcq",
+                question: "Apakah maksud Riya'?",
+                options: [
+                    "Melakukan ibadah untuk menunjuk-nunjuk kepada manusia.",
+                    "Percaya kepada bomoh dan ahli sihir.",
+                    "Meninggalkan solat dengan sengaja.",
+                    "Merasa diri lebih baik daripada orang lain."
+                ],
+                answer: "Melakukan ibadah untuk menunjuk-nunjuk kepada manusia.",
+                explanation: "Riya' adalah amalan hati yang tersembunyi dan tergolong dalam Syirik Khafi."
+            },
+
+            // 4. Ibadah - 10 Soalan (3E, 7M)
+            {
+                category: "Ibadah (Tayammum) - Asas",
+                type: "mcq",
+                question: "Apakah bahan yang digunakan untuk Tayammum?",
+                options: ["Air mutlak", "Debu tanah yang suci", "Air musta'mal", "Batu"],
+                answer: "Debu tanah yang suci",
+                explanation: "Tayammum adalah rukhsah (keringanan) menggunakan debu tanah apabila tiada air."
+            },
+            {
+                category: "Ibadah (Tayammum) - Asas (Subjektif)",
+                type: "subjective",
+                question: "Senaraikan TIGA Rukun Tayammum.",
+                answer: "1. Niat\n2. Menyapu debu tanah ke muka\n3. Menyapu debu tanah ke kedua-dua tangan hingga siku\n(Rukun ke-4: Tertib)",
+                explanation: "Rukun ini mesti dilakukan mengikut urutan (tertib)."
+            },
+            {
+                category: "Ibadah (Berjemaah) - Asas",
+                type: "mcq",
+                question: "Berapakah gandaan pahala solat berjemaah berbanding solat bersendirian?",
+                options: ["10 kali", "27 kali", "70 kali", "100 kali"],
+                answer: "27 kali",
+                explanation: "Berdasarkan hadis, pahalanya digandakan 27 darjat."
+            },
+            {
+                category: "Ibadah (Tayammum) - Sederhana",
+                type: "mcq",
+                question: "Farid telah bertayammum untuk solat Zohor. Tiba-tiba, sebelum dia solat, hujan turun dengan lebat. Apakah hukum tayammumnya?",
+                options: [
+                    "Tayammumnya sah, dia boleh terus solat.",
+                    "Tayammumnya terbatal, dia wajib berwuduk dengan air hujan.",
+                    "Dia boleh memilih sama ada mahu berwuduk atau solat terus.",
+                    "Dia mesti menunggu hujan berhenti."
+                ],
+                answer: "Tayammumnya terbatal, dia wajib berwuduk dengan air hujan.",
+                explanation: "Antara perkara yang membatalkan tayammum ialah 'menjumpai air sebelum solat'."
+            },
+            {
+                category: "Ibadah (Berjemaah) - Sederhana",
+                type: "mcq",
+                question: "Apakah yang dimaksudkan dengan 'Makmum Masbuq'?",
+                options: [
+                    "Makmum yang sempat membaca Al-Fatihah bersama imam.",
+                    "Makmum yang terlambat (tidak sempat membaca Al-Fatihah) dalam rakaat pertama.",
+                    "Makmum yang solat di saf paling belakang.",
+                    "Makmum kanak-kanak."
+                ],
+                answer: "Makmum yang terlambat (tidak sempat membaca Al-Fatihah) dalam rakaat pertama.",
+                explanation: "Makmum Masbuq perlu menambah rakaat yang tertinggal selepas imam memberi salam."
+            },
+            {
+                category: "Ibadah (Berjemaah) - Sederhana",
+                type: "mcq",
+                question: "Apakah hukum solat seorang makmum yang sengaja rukuk SEBELUM imamnya rukuk?",
+                options: ["Sah", "Batal", "Makruh", "Dapat pahala lebih"],
+                answer: "Batal",
+                explanation: "Makmum wajib mengikut pergerakan imam. Mendahului imam dengan sengaja akan membatalkan solat."
+            },
+            {
+                category: "Ibadah (Jumaat) - Sederhana",
+                type: "mcq",
+                question: "Manakah antara berikut BUKAN syarat sah Solat Jumaat?",
+                options: [
+                    "Didahului dengan dua khutbah.",
+                    "Wajib memakai jubah dan serban.",
+                    "Dilakukan secara berjemaah.",
+                    "Dilakukan dalam waktu Zohor."
+                ],
+                answer: "Wajib memakai jubah dan serban.",
+                explanation: "Memakai pakaian yang bersih dan menutup aurat adalah wajib, tetapi jubah/serban adalah amalan sunat, bukan syarat sah."
+            },
+            {
+                category: "Ibadah (Jumaat) - Sederhana",
+                type: "mcq",
+                question: "Amir tiba di masjid ketika imam sedang sujud pada rakaat KEDUA Solat Jumaat. Apakah yang perlu dilakukannya selepas imam memberi salam?",
+                options: [
+                    "Menambah satu rakaat sahaja.",
+                    "Memberi salam bersama imam.",
+                    "Menambah DUA rakaat solat Jumaat.",
+                    "Bangun dan solat Zohor empat rakaat."
+                ],
+                answer: "Bangun dan solat Zohor empat rakaat.",
+                explanation: "Seseorang dikira terlepas Solat Jumaat jika dia tidak sempat rukuk bersama imam pada rakaat kedua. Dia mesti niat solat Zohor dan mencukupkan 4 rakaat."
+            },
+            {
+                category: "Ibadah (Hari Raya) - Sederhana",
+                type: "mcq",
+                question: "Apakah hukum menunaikan Solat Sunat Hari Raya?",
+                options: ["Fardhu Ain", "Fardhu Kifayah", "Sunat Muakkad", "Harus"],
+                answer: "Sunat Muakkad",
+                explanation: "Ia adalah sunat yang sangat dituntut dan digalakkan."
+            },
+            {
+                category: "Ibadah (Hari Raya) - Sederhana",
+                type: "mcq",
+                question: "Apakah amalan sunat yang berbeza dilakukan SEBELUM solat bagi kedua-dua hari raya?",
+                options: [
+                    "Aidilfitri sunat makan dahulu; Aidiladha sunat tidak makan sehingga selesai solat.",
+                    "Aidilfitri sunat mandi; Aidiladha tidak sunat mandi.",
+                    "Aidilfitri sunat pakai wangi-wangian; Aidiladha tidak sunat.",
+                    "Aidilfitri sunat takbir; Aidiladha tidak sunat takbir."
+                ],
+                answer: "Aidilfitri sunat makan dahulu; Aidiladha sunat tidak makan sehingga selesai solat.",
+                explanation: "Sunat menahan makan sebelum solat Aidiladha adalah untuk membolehkan kita makan daging korban sebagai permulaan."
+            },
+
+            // 5. Bidang Sirah - 8 Soalan (2E, 6M)
+            {
+                category: "Sirah - Asas",
+                type: "mcq",
+                question: "Peristiwa Hijrah adalah perpindahan Nabi Muhammad SAW dari...",
+                options: ["Makkah ke Madinah", "Makkah ke Taif", "Makkah ke Habsyah", "Madinah ke Makkah"],
+                answer: "Makkah ke Madinah",
+                explanation: "Perpindahan ini berlaku atas perintah Allah."
+            },
+            {
+                category: "Sirah - Asas",
+                type: "mcq",
+                question: "Siapakah sahabat yang menemani Rasulullah SAW bersembunyi di Gua Thur?",
+                options: ["Sayidina Ali bin Abi Talib", "Sayidina Abu Bakar As-Siddiq", "Sayidina Uthman bin Affan", "Zaid bin Harithah"],
+                answer: "Sayidina Abu Bakar As-Siddiq",
+                explanation: "Beliau adalah sahabat karib Nabi SAW."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Apakah peranan Asma' binti Abu Bakar dalam menjayakan peristiwa Hijrah?",
+                options: [
+                    "Menjadi penunjuk jalan ke Madinah.",
+                    "Tidur di katil Nabi untuk mengelirukan musuh.",
+                    "Menghantar bekalan makanan dan minuman ke Gua Thur.",
+                    "Menyebarkan berita palsu kepada musuh."
+                ],
+                answer: "Menghantar bekalan makanan dan minuman ke Gua Thur.",
+                explanation: "Walaupun sedang hamil, beliau tetap gigih membantu."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Siapakah yang ditugaskan untuk mengintip berita dan gerakan kafir Quraisy di Makkah?",
+                options: ["Amir bin Fuhairah", "Abdullah bin Uraiqit", "Abdullah bin Abu Bakar", "Zubair bin Awwam"],
+                answer: "Abdullah bin Abu Bakar",
+                explanation: "Beliau adalah anak lelaki Sayidina Abu Bakar."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Apakah peranan Amir bin Fuhairah dalam strategi hijrah di Gua Thur?",
+                options: [
+                    "Membawa unta tunggangan.",
+                    "Membawa kawanan kambingnya untuk menghilangkan jejak kaki.",
+                    "Membawa bekalan makanan.",
+                    "Berkawal di pintu gua."
+                ],
+                answer: "Membawa kawanan kambingnya untuk menghilangkan jejak kaki.",
+                explanation: "Ini adalah strategi bijak untuk mengelirukan penjejak musuh."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Apakah nama perlembagaan bertulis yang digubal oleh Nabi Muhammad SAW di Madinah?",
+                options: ["Perjanjian Hudaibiyah", "Piagam Madinah", "Baiah Aqabah", "Warkah Madinah"],
+                answer: "Piagam Madinah",
+                explanation: "Ia adalah perlembagaan pertama yang menyatukan penduduk berbilang kaum (Islam, Yahudi, dll) di bawah satu pentadbiran."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Apakah antara tindakan pertama Nabi SAW sebagai 'Pemimpin Agung' untuk menyatukan masyarakat Madinah?",
+                options: [
+                    "Membina pasar dan membina masjid.",
+                    "Membina masjid dan mempersaudarakan Muhajirin & Ansar.",
+                    "Melantik menteri dan memulakan peperangan.",
+                    "Membahagikan harta dan membina istana."
+                ],
+                answer: "Membina masjid dan mempersaudarakan Muhajirin & Ansar.",
+                explanation: "Masjid Nabawi menjadi pusat ibadah & pentadbiran. Persaudaraan pula membina ikatan sosial yang kuat."
+            },
+            {
+                category: "Sirah - Sederhana",
+                type: "mcq",
+                question: "Siapakah 'Kaum Muhajirin'?",
+                options: [
+                    "Penduduk asal Madinah.",
+                    "Penduduk Makkah yang berhijrah ke Madinah.",
+                    "Kaum Yahudi di Madinah.",
+                    "Orang yang musyrik."
+                ],
+                answer: "Penduduk Makkah yang berhijrah ke Madinah.",
+                explanation: "'Muhajirin' bermaksud 'orang yang berhijrah'. 'Ansar' pula ialah 'pembantu' (penduduk asal Madinah)."
+            },
+
+            // 6. Bidang Adab - 4 Soalan (2E, 2M)
+            {
+                category: "Adab - Asas",
+                type: "mcq",
+                question: "Manakah antara berikut BUKAN adab 'Bijak Berkomunikasi'?",
+                options: [
+                    "Bercakap dengan sopan dan nada yang lembut.",
+                    "Mencelah atau memotong percakapan orang lain.",
+                    "Bercakap benar dan jujur.",
+                    "Memberi tumpuan kepada orang yang bercakap."
+                ],
+                answer: "Mencelah atau memotong percakapan orang lain.",
+                explanation: "Kita hendaklah menunggu sehingga orang lain habis bercakap sebelum kita mula bercakap."
+            },
+            {
+                category: "Adab - Asas",
+                type: "mcq",
+                question: "Manakah contoh perbuatan yang menunjukkan adab terhadap alam sekitar (Alam Ceria)?",
+                options: [
+                    "Membakar sampah secara terbuka.",
+                    "Mengamalkan kitar semula dan menjimatkan air.",
+                    "Membiarkan air paip terbuka semasa gosok gigi.",
+                    "Memetik bunga di taman awam."
+                ],
+                answer: "Mengamalkan kitar semula dan menjimatkan air.",
+                explanation: "Menjaga kebersihan dan mengelak pembaziran adalah adab kita terhadap alam."
+            },
+            {
+                category: "Adab - Sederhana",
+                type: "mcq",
+                question: "Anda terdengar rakan anda mula 'Ghibah' (mengumpat) tentang seorang guru. Apakah tindakan 'Bijak Berkomunikasi' yang patut anda lakukan?",
+                options: [
+                    "Turut serta mengumpat bersama-sama.",
+                    "Menukar topik perbualan atau menegur secara baik.",
+                    "Merakam perbualan itu untuk disebarkan.",
+                    "Mendiamkan diri dan mendengar sahaja."
+                ],
+                answer: "Menukar topik perbualan atau menegur secara baik.",
+                explanation: "Adab komunikasi yang bijak termasuklah menghentikan perbuatan mungkar (seperti ghibah) dengan hikmah."
+            },
+            {
+                category: "Adab - Sederhana",
+                type: "mcq",
+                question: "Mengapakah Islam mementingkan adab 'Alam Ceria' (menjaga alam sekitar)?",
+                options: [
+                    "Kerana ia adalah tanggungjawab kita sebagai khalifah dan tanda bersyukur atas nikmat Allah.",
+                    "Kerana kita akan didenda oleh kerajaan jika tidak menjaganya.",
+                    "Kerana ia hanya penting untuk haiwan, bukan manusia.",
+                    "Kerana ia satu fesyen moden."
+                ],
+                answer: "Kerana ia adalah tanggungjawab kita sebagai khalifah dan tanda bersyukur atas nikmat Allah.",
+                explanation: "Memelihara alam adalah sebahagian daripada iman."
+            }
+        ];
+
+        // --- Elemen DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        const questionCounter = document.getElementById('question-counter');
+        const scoreCounter = document.getElementById('score-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const questionCategory = document.getElementById('question-category');
+        const questionText = document.getElementById('question-text');
+
+        const optionsContainer = document.getElementById('options-container');
+        const inputContainer = document.getElementById('input-container');
+        const subjectiveInput = document.getElementById('subjective-input');
+
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+
+        const finalScore = document.getElementById('final-score');
+        const finalPercentage = document.getElementById('final-percentage');
+        const resultMessage = document.getElementById('result-message');
+
+        // --- Logik Kuiz ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionElement = null;
+
+        // --- Fungsi ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            startScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            scoreCounter.textContent = `Skor: 0`;
+            // Reset final score color
+            finalScore.classList.remove('text-teal-600', 'text-blue-600', 'text-red-600');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // Reset UI
+            feedbackContainer.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+            optionsContainer.innerHTML = '';
+            inputContainer.classList.add('hidden');
+            subjectiveInput.value = '';
+            subjectiveInput.disabled = false;
+            selectedOptionElement = null;
+
+            // Dapatkan soalan semasa
+            const q = questions[currentQuestionIndex];
+
+            // Kemas kini UI soalan
+            questionCounter.textContent = `Soalan ${currentQuestionIndex + 1} dari ${questions.length}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            questionCategory.textContent = q.category;
+            questionText.textContent = q.question;
+
+            // Papar pilihan jawapan atau input
+            if (q.type === 'mcq') {
+                submitBtn.disabled = true; // Hanya boleh hantar bila pilihan dibuat
+                q.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('w-full', 'p-4', 'border-2', 'border-gray-300', 'rounded-lg', 'text-left', 'text-lg', 'hover:bg-gray-100', 'transition-colors', 'duration-200', 'option-btn');
+                    button.onclick = () => selectOption(button, option);
+                    optionsContainer.appendChild(button);
+                });
+            } else if (q.type === 'subjective') {
+                inputContainer.classList.remove('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        function selectOption(buttonElement, option) {
+            // Nyahpilih pilihan lama
+            if (selectedOptionElement) {
+                selectedOptionElement.classList.remove('border-teal-500', 'bg-teal-50');
+                selectedOptionElement.classList.add('border-gray-300');
+            }
+            
+            // Pilih pilihan baru
+            selectedOptionElement = buttonElement;
+            selectedOptionElement.classList.add('border-teal-500', 'bg-teal-50');
+            selectedOptionElement.classList.remove('border-gray-300');
+            
+            submitBtn.disabled = false;
+        }
+
+        function checkAnswer() {
+            const q = questions[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (q.type === 'mcq') {
+                if (selectedOptionElement) {
+                    const selectedAnswer = selectedOptionElement.textContent;
+                    isCorrect = (selectedAnswer === q.answer);
+                    
+                    // Tandakan semua pilihan
+                    Array.from(optionsContainer.children).forEach(btn => {
+                        btn.disabled = true;
+                        // Hapus hover styles
+                        btn.classList.remove('hover:bg-gray-100');
+                        
+                        if (btn.textContent === q.answer) {
+                            btn.classList.add('correct-answer');
+                            btn.classList.remove('border-teal-500', 'bg-teal-50', 'border-gray-300');
+                        } else if (btn.textContent === selectedAnswer && !isCorrect) {
+                            btn.classList.add('wrong-answer');
+                            btn.classList.remove('border-teal-500', 'bg-teal-50', 'border-gray-300');
+                        } else {
+                             btn.classList.add('border-gray-300');
+                             btn.classList.remove('border-teal-500', 'bg-teal-50');
+                        }
+                    });
+                }
+            } else if (q.type === 'subjective') {
+                // Untuk subjektif, kita tunjukkan jawapan yang betul
+                // Kita anggap "betul" untuk skor, tetapi utamanya ialah tunjuk jawapan
+                score++; // Increment score for subjective questions
+                isCorrect = true; 
+                subjectiveInput.disabled = true;
+                feedbackExplanation.innerHTML = `<strong>Jawapan Cadangan:</strong><br>${q.answer.replace(/\n/g, '<br>')}`;
+            }
+
+            // Kemas kini skor dan paparan maklum balas
+            if (q.type === 'mcq') {
+                if (isCorrect) {
+                    score++;
+                    feedbackTitle.textContent = 'Betul!';
+                    feedbackContainer.classList.add('bg-green-100', 'text-green-800');
+                    feedbackContainer.classList.remove('bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
+                } else {
+                    feedbackTitle.textContent = 'Salah!';
+                    feedbackContainer.classList.add('bg-red-100', 'text-red-800');
+                    feedbackContainer.classList.remove('bg-green-100', 'text-green-800', 'bg-blue-100', 'text-blue-800');
+                }
+                feedbackExplanation.innerHTML = q.explanation; // Use innerHTML for potential formatting
+            } else {
+                feedbackTitle.textContent = 'Jawapan Diterima';
+                feedbackContainer.classList.add('bg-blue-100', 'text-blue-800');
+                feedbackContainer.classList.remove('bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            }
+
+            scoreCounter.textContent = `Skor: ${score}`;
+            feedbackContainer.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+
+            const percentage = Math.round((score / questions.length) * 100);
+            finalScore.textContent = `${score} / ${questions.length}`;
+            finalPercentage.textContent = `${percentage}%`;
+
+            // Reset color classes before adding new one
+            finalScore.classList.remove('text-teal-600', 'text-blue-600', 'text-red-600');
+
+            if (percentage >= 80) {
+                resultMessage.textContent = "Cemerlang! Usaha yang hebat!";
+                finalScore.classList.add('text-teal-600');
+            } else if (percentage >= 50) {
+                resultMessage.textContent = "Bagus! Teruskan usaha anda.";
+                finalScore.classList.add('text-blue-600');
+            } else {
+                resultMessage.textContent = "Jangan putus asa. Cuba ulangkaji dan tes semula.";
+                finalScore.classList.add('text-red-600');
+            }
+        }
+
+        // --- Tambah Event Listeners ---
+        startBtn.addEventListener('click', startQuiz);
+        restartBtn.addEventListener('click', startQuiz);
+        submitBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextQuestion);
+
+    </script>
+</body>
+</html>
