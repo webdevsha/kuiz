@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <title>Peperiksaan Pendidikan Islam Tingkatan 2</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans","Helvetica Neue",Arial;padding:20px;background:#f7f7fb;color:#111;}
+    .card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);max-width:900px;margin:20px auto;}
+    h1,h2{margin:0 0 12px 0}
+    .meta{font-size:0.9rem;color:#555;margin-bottom:12px}
+    .controls{display:flex;gap:8px;margin-top:16px}
+    button{background:#0652DD;color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#6c757d}
+    .hidden{display:none}
+    .answer{margin-top:12px;padding:12px;background:#f1f9ed;border-left:4px solid #2fa84f;border-radius:6px}
+    .wrong{background:#fff1f0;border-left:4px solid #e03e2d}
+    label.option{display:block;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #e9eefb}
+    .marks{font-weight:700;color:#0b62d1}
+    textarea{width:100%;min-height:140px;padding:10px;border-radius:8px;border:1px solid #ddd}
+    .pager{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+    .center{text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Ujian: Pendidikan Islam — Tingkatan 2</h1>
+    <p class="meta">Skop: Bab 4, 7, 8, 9, 12, 13, 16, 18, 22, 23, 26, 27 (dirujuk dari Buku Teks Pendidikan Islam Tingkatan 2). :contentReference[oaicite:1]{index=1}</p>
+    <p><strong>Arahan ringkas:</strong> Terdapat 20 soalan objektif (20 markah). Selepas itu, bahagian subjektif 80 markah. Soalan akan dipaparkan satu muka setiap satu. Jawapan objektif akan mendedahkan kebenaran sebaik anda menekan <em>Submit</em>. Untuk soalan subjektif, gunakan butang <em>Show Model Answer</em> untuk melihat contoh jawapan dan pembahagian markah.</p>
+    <div id="quiz"></div>
+    <div class="pager">
+      <div>
+        <button id="prevBtn" class="secondary">Sebelum</button>
+        <button id="nextBtn">Seterusnya</button>
+      </div>
+      <div class="center">
+        Muka <span id="pageNum">1</span> / <span id="pageCount">1</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // --- Soalan & Jawapan ---
+  // Objektif: 20 soalan — setiap satunya 1 markah.
+  // Pembahagian kesukaran (markah keseluruhan): mudah 30, sederhana 50, sukar 20.
+  // Objektif dibahagikan: 6 mudah (6 markah), 10 sederhana (10 markah), 4 sukar (4 markah).
+  const pages = [];
+
+  // --------------- OBJEKTIF (1 mark each) 20 items ---------------
+  // Saya sediakan soalan objektif mengikut topik daripada Bab yang diberi.
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'1. Apakah maksud “iman kepada malaikat”?',
+      options:['Tidak perlu percaya pada malaikat','Percaya bahawa malaikat wujud dan menjalankan perintah Allah','Menganggap malaikat sama seperti manusia','Menyembah malaikat'],
+      answer:1,
+      explain:'Iman kepada malaikat bermaksud mempercayai kewujudan malaikat dan peranan mereka melaksanakan perintah Allah.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'2. Siapakah malaikat yang bertanggungjawab menyampaikan wahyu kepada para Nabi?',
+      options:['Mikael','Izrail','Jibril','Israfil'],
+      answer:2,
+      explain:'Malaikat Jibril diberi tugas menyampaikan wahyu kepada para Nabi.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'3. Apakah maksud “takwa” dalam konteks akhlak Islam?',
+      options:['Hanya menunaikan solat sahaja','Mempunyai rasa takut kepada orang lain','Berusaha melaksanakan perintah Allah dan menjauhi larangan-Nya','Berkata benar apabila dikehendaki sahaja'],
+      answer:2,
+      explain:'Takwa bermaksud sentiasa berusaha melaksanakan perintah Allah dan menjauhi larangan-Nya.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'4. Dalam ilmu tajwid, apakah itu “nun sakinah”?',
+      options:['Huruf nun yang mempunyai harakat','Huruf nun yang mati/bersukun','Satu jenis bacaan riwayat','Nama surah dalam al-Quran'],
+      answer:1,
+      explain:'Nun sakinah ialah huruf nun yang bersukun (mati) yang hukumnya khusus dalam tajwid.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'5. Apakah tujuan hukum “idgham” dalam tajwid?',
+      options:['Menghilangkan huruf','Menggabungkan bunyi huruf supaya bacaan lancar','Menyenangkan bacaan dengan menambah huruf','Mengubah makna ayat'],
+      answer:1,
+      explain:'Idgham menyatukan bunyi huruf supaya bacaan menjadi lebih lancar.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'6. Apakah yang dimaksudkan dengan “tanggungjawab terhadap keluarga” menurut ajaran Islam?',
+      options:['Hanya memberikan hadiah pada sambutan','Memberi nafkah, kasih sayang dan mendidik secara baik','Membiarkan keluarga menguruskan diri sendiri','Memberi nasihat sahaja tanpa tindakan'],
+      answer:1,
+      explain:'Islam mengajar tanggungjawab memberi nafkah, kasih sayang dan pendidikan kepada keluarga.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'7. Siapakah yang akan meniup sangkakala pada hari kiamat menurut ajaran Islam?',
+      options:['Jibril','Mikael','Israfil','Izrail'],
+      answer:2,
+      explain:'Israfil ialah malaikat yang ditugaskan meniup sangkakala pada Hari Kiamat.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'8. Nyatakan salah satu hikmah berdoa menurut buku teks.',
+      options:['Mengelakkan kerja','Mendapat pertolongan dan petunjuk Allah','Menjadikan hidup sukar','Menggantikan usaha manusia'],
+      answer:1,
+      explain:'Salah satu hikmah berdoa ialah mendapatkan pertolongan dan petunjuk daripada Allah.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'9. Apakah maksud “taubat nasuha”?',
+      options:['Taubat yang dibuat sambil bergurau','Taubat yang tidak ikhlas','Taubat yang sungguh-sungguh dengan azam tidak mengulang dosa','Taubat yang hanya di mulut sahaja'],
+      answer:2,
+      explain:'Taubat nasuha ialah taubat yang tulus dengan tekad tidak mengulang dosa.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sukar',
+      q:'10. Dalam konteks hukum fiqh, apakah tujuan utama syariat mengharuskan wuduk atau tayammum sebelum solat?',
+      options:['Untuk menunjukkan kekayaan','Untuk membersihkan diri secara rohani dan fizikal sebelum beribadah','Supaya cepat selesai solat','Kerana ia tradisi masyarakat'],
+      answer:1,
+      explain:'Tujuan utama ialah mengekalkan kebersihan fizikal dan rohani sebelum mendirikan solat.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'11. Antara berikut, manakah contoh sikap “akhlaq mulia” yang dituntut Islam?',
+      options:['Berbohong untuk kelihatan baik','Suka memfitnah orang lain','Bersangka buruk sentiasa','Suka membantu orang yang memerlukan'],
+      answer:3,
+      explain:'Sikap akhlak mulia termasuk membantu orang lain dan mengelakkan perbuatan buruk.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sukar',
+      q:'12. Jelaskan mengapa iman kepada kitab-kitab Allah termasuk rukun iman — pilih jawapan yang tepat.',
+      options:['Kerana kitab-kitab menunjukkan jalan petunjuk dari Allah kepada manusia','Kerana kitab adalah barang sejarah','Kerana kitab mudah didapati','Kerana kitab hanya untuk ulama'],
+      answer:0,
+      explain:'Kitab-kitab Allah ialah sumber hidayah dan panduan yang diturunkan kepada para rasul — oleh itu iman kepada kitab-kitab adalah asas rukun iman.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'13. Apakah yang dimaksudkan dengan “amar ma’ruf nahi mungkar”?',
+      options:['Menggalakkan perkara baik dan mencegah perkara yang salah','Mengabaikan perkara buruk','Menyokong segala tindakan tanpa soal','Hanya mengutamakan diri sendiri'],
+      answer:0,
+      explain:'Amar ma\'ruf nahi mungkar bermaksud menyeru kepada kebaikan dan mencegah kemungkaran.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'14. Dalam pengurusan masjid sebagai destinasi komuniti, apakah salah satu peranan utama masjid menurut buku teks?',
+      options:['Hanya tempat menyimpan barang','Pusat aktiviti agama dan pendidikan masyarakat','Hanya untuk aktiviti politik','Tempat perniagaan sahaja'],
+      answer:1,
+      explain:'Masjid berfungsi sebagai pusat ibadah, pendidikan dan aktiviti masyarakat.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sukar',
+      q:'15. Nyatakan salah satu bukti kewujudan malaikat yang disebut dalam al-Quran (pilih yang tepat).',
+      options:['Malaikat ditonjolkan sebagai jin','Malaikat diberi tugas tertentu seperti menyampaikan wahyu dan mencabut nyawa','Malaikat dipanggil raja','Malaikat hidup sebagai manusia biasa'],
+      answer:1,
+      explain:'Al-Quran menyebut malaikat dengan tugas tertentu seperti Jibril menyampaikan wahyu dan Izrail mencabut nyawa.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'16. Mengikut buku teks, mengapakah adab terhadap ibu bapa ditekankan dalam Islam?',
+      options:['Ibu bapa tidak penting','Kerana ibu bapa memberi kasih sayang, pengorbanan dan pendidikan','Kerana ia tradisi budaya sahaja','Kerana hanya untuk orang kaya'],
+      answer:1,
+      explain:'Islam menekankan adab kepada ibu bapa kerana mereka memberi pengorbanan, mendidik dan membesarkan anak-anak.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'17. Apakah peranan malaikat rakib dalam kepercayaan Islam?',
+      options:['Menyeru manusia ke arah maksiat','Mencatat amal perbuatan baik dan buruk manusia','Menggembirakan manusia sahaja','Mengurus urusan syurga sahaja'],
+      answer:1,
+      explain:'Malaikat rakib mencatat amalan baik dan buruk setiap manusia untuk dibentangkan pada Hari Pembalasan.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sukar',
+      q:'18. Dalam bab berkaitan akhlak, apakah maksud “sifatul amanah”?',
+      options:['Tidak amanah dalam tugas','Berpegang pada tanggungjawab, jujur dan boleh dipercayai','Bercakap tanpa berfikir','Mengabaikan tugas'],
+      answer:1,
+      explain:'Amanah bermaksud bertanggungjawab, jujur dan boleh dipercayai dalam melaksanakan tugas.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'sederhana',
+      q:'19. Mengikut buku teks, apakah langkah pertama dalam proses taubat? ',
+      options:['Terus berulang dosa','Menyesali perbuatan dan berazam tidak mengulang','Bercakap tentang dosa kepada orang lain tanpa tindakan','Mengharapkan orang lain membetulkan dosa anda'],
+      answer:1,
+      explain:'Langkah pertama taubat ialah menyesal dan berniat tidak mengulang kembali perbuatan tersebut.'}
+  );
+
+  pages.push(
+    { type: 'mcq', marks:1, difficulty:'mudah',
+      q:'20. Apakah maksud “akhlaq” secara umum?',
+      options:['Tingkah laku dan sifat seseorang','Hanya amalan ibadah sahaja','Pakaian yang dipakai','Nama surah dalam al-Quran'],
+      answer:0,
+      explain:'Akhlaq bermaksud perangai, tingkah laku dan sifat seseorang dalam berinteraksi dan bertindak.'}
+  );
+
+  // --------------- SUBJEKTIF (80 markah) ---------------
+  // Susunan: 2 mudah (12+12 =24), 3 sederhana (13+13+14 =40), 1 sukar (16) => total 80
+  pages.push(
+    { type:'essay', marks:12, difficulty:'mudah',
+      q:'21. (12 markah — Mudah) Terangkan tiga langkah taubat yang betul menurut ajaran Islam dan berikan satu contoh setiap langkah.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 12):
+- Menyesal (4 markah): Menunjukkan perasaan sedih dan menyesal kerana melakukan dosa. Contoh: Seseorang yang menyesal kerana memfitnah rakan.
+- Berhenti melakukan dosa (4 markah): Berhenti serta-merta daripada perbuatan salah tersebut. Contoh: Menghentikan tabiat memfitnah.
+- Berazam tidak mengulang dan memperbaiki (4 markah): Berniat kuat untuk tidak mengulangi dan melakukan taubat dengan amal kebaikan; misalnya memohon maaf kepada orang yang difitnah dan memperbaiki hubungan.`}
+  );
+
+  pages.push(
+    { type:'essay', marks:12, difficulty:'mudah',
+      q:'22. (12 markah — Mudah) Huraikan lima adab seorang anak terhadap ibu bapa mengikut panduan Islam.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 12):
+- Berkata sopan dan tidak membentak (3 markah).
+- Menjaga hati dan perasaan ibu bapa (2 markah).
+- Menunaikan tanggungjawab seperti membantu kerja rumah dan memberi nafkah jika perlu (3 markah).
+- Memohon izin dan mendoakan kesejahteraan mereka (2 markah).
+- Mengasihi dan memuliakan mereka walau di mana berada (2 markah).` }
+  );
+
+  pages.push(
+    { type:'essay', marks:13, difficulty:'sederhana',
+      q:'23. (13 markah — Sederhana) Jelaskan peranan masjid dalam komuniti menurut buku teks dan beri dua contoh aktiviti yang boleh dijalankan oleh masjid untuk memupuk perpaduan.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 13):
+- Peranan masjid: pusat ibadah, pusat pendidikan agama, pusat khidmat masyarakat dan tempat pemupukan nilai moral (6 markah).
+- Contoh aktiviti 1: Program khidmat komuniti seperti sumbangan makanan atau gotong-royong (3.5 markah).
+- Contoh aktiviti 2: Kelas agama / kelas al-Quran untuk semua peringkat umur (3.5 markah).` }
+  );
+
+  pages.push(
+    { type:'essay', marks:13, difficulty:'sederhana',
+      q:'24. (13 markah — Sederhana) Terangkan lima sifat malaikat yang disebut dalam buku teks dan bagaimana sifat-sifat itu memberi pengajaran kepada kita.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 13):
+- Malaikat sentiasa taat kepada Allah (3 markah) — pengajaran: kita mesti taat pula kepada perintah Allah.
+- Malaikat tidak mempunyai hawa nafsu (2.5 markah) — pengajaran: pentingnya mengawal nafsu.
+- Malaikat menjalankan tugas tertentu (2.5 markah) — pengajaran: setiap individu mempunyai tanggungjawab.
+- Malaikat mencatat amalan manusia (2 markah) — pengajaran: ingat bahawa amalan kita dicatat, jadi lakukan kebaikan.
+- Malaikat tidak makan dan minum dan wujud di alam lain (2 markah) — pengajaran: keimanan kepada perkara ghaib.` }
+  );
+
+  pages.push(
+    { type:'essay', marks:14, difficulty:'sederhana',
+      q:'25. (14 markah — Sederhana) Bincangkan konsep “amar ma’ruf nahi mungkar” dan berikan dua contoh praktikal pelaksanaannya di sekolah.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 14):
+- Huraian konsep (6 markah): Amar ma\'ruf (menyuruh kebaikan) dan nahi mungkar (mencegah kemungkaran) ialah tanggungjawab setiap Muslim untuk mempromosikan nilai baik dan menghalang keburukan dengan hikmah dan cara yang sesuai.
+- Contoh 1 di sekolah (4 markah): Menubuhkan kumpulan ‘Peer Support’ untuk menasihati rakan yang terlibat dengan buli dan membantu mereka kembali ke jalan benar.
+- Contoh 2 di sekolah (4 markah): Mengadakan kem pendedahan nilai-nilai murni untuk murid supaya mengamalkan tolong-menolong dan menegur kesalahan secara sopan.` }
+  );
+
+  pages.push(
+    { type:'essay', marks:16, difficulty:'sukar',
+      q:'26. (16 markah — Sukar) Huraikan hubungan antara iman kepada al-Quran dan amalan seharian seorang Muslim. Dalam jawapan, bincangkan tiga contoh bagaimana pemahaman al-Quran dapat mempengaruhi keputusan moral seseorang.' ,
+      modelAnswer:`Contoh rangka jawapan (markah penuh 16):
+- Pengenalan (2 markah): Iman kepada al-Quran sebagai wahyu Allah adalah asas kepada panduan hidup Muslim.
+- Hubungan dengan amalan seharian (4 markah): Al-Quran memberi prinsip moral, etika, hukum dan panduan yang membentuk sikap serta tingkah laku.
+- Contoh 1 (4 markah): Keputusan soal kejujuran di tempat kerja — kefahaman ayat yang menekankan jujur dan amanah mendorong seseorang menolak rasuah.
+- Contoh 2 (3 markah): Cara seorang ibu bapa mendidik anak — memahami ayat mengenai kasih sayang dan tanggungjawab keluarga, jadi lebih sabar dan berdedikasi.
+- Contoh 3 (3 markah): Sikap terhadap kemiskinan — pemahaman ayat mengenai sedekah dan tolong-menolong menggalakkan tindakan membela kelompok miskin.` }
+  );
+
+  // --- end pages
+
+  // Render quiz
+  const pageCount = pages.length;
+  document.getElementById('pageCount').textContent = pageCount;
+  let current = 0;
+
+  function renderPage(i){
+    const container = document.getElementById('quiz');
+    container.innerHTML = '';
+    const item = pages[i];
+    document.getElementById('pageNum').textContent = (i+1);
+    const h = document.createElement('div');
+    h.innerHTML = `<h2>Soalan ${i+1} ${item.type==='mcq' ? '(Objektif)' : '(Subjektif)'} — <span class="marks">${item.marks} markah</span></h2>`;
+    container.appendChild(h);
+
+    const q = document.createElement('p');
+    q.innerHTML = `<strong>${item.q}</strong>`;
+    container.appendChild(q);
+
+    if(item.type==='mcq'){
+      const form = document.createElement('form');
+      form.id = 'mcqForm';
+      item.options.forEach((opt, idx)=>{
+        const id = `opt_${i}_${idx}`;
+        const label = document.createElement('label');
+        label.className = 'option';
+        label.innerHTML = `<input type="radio" name="choice" value="${idx}" id="${id}"> <strong>${String.fromCharCode(65+idx)}.</strong> ${opt}`;
+        form.appendChild(label);
+      });
+      const submitBtn = document.createElement('button');
+      submitBtn.textContent = 'Submit';
+      submitBtn.type = 'button';
+      submitBtn.onclick = ()=> checkMCQ(i);
+      form.appendChild(submitBtn);
+      container.appendChild(form);
+
+      const ansDiv = document.createElement('div');
+      ansDiv.id = 'mcqAnswer';
+      container.appendChild(ansDiv);
+    } else if(item.type==='essay'){
+      const txt = document.createElement('textarea');
+      txt.id = 'essayAnswer';
+      txt.placeholder = 'Tulis jawapan anda di sini (pelajar boleh simpan/serahkan kepada guru).';
+      container.appendChild(txt);
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+      const show = document.createElement('button');
+      show.textContent = 'Show Model Answer';
+      show.type = 'button';
+      show.onclick = ()=> {
+        const ansBox = document.getElementById('essayModel');
+        if(ansBox.style.display==='block'){ ansBox.style.display='none'; show.textContent='Show Model Answer'; }
+        else { ansBox.style.display='block'; show.textContent='Hide Model Answer'; }
+      };
+      controls.appendChild(show);
+      container.appendChild(controls);
+
+      const model = document.createElement('div');
+      model.id = 'essayModel';
+      model.style.display='none';
+      model.className='answer';
+      model.innerHTML = `<strong>Jawapan Model (contoh):</strong><div style="margin-top:8px;white-space:pre-wrap;">${item.modelAnswer}</div>`;
+      container.appendChild(model);
+    }
+
+    // small footnote for difficulty
+    const foot = document.createElement('p');
+    foot.style.marginTop='14px';
+    foot.style.fontSize='0.9rem';
+    foot.style.color='#666';
+    foot.innerHTML = `<em>Kesukaran: ${item.difficulty.toUpperCase()}</em>`;
+    container.appendChild(foot);
+  }
+
+  // MCQ check
+  function checkMCQ(i){
+    const item = pages[i];
+    const form = document.getElementById('mcqForm');
+    const choice = form.querySelector('input[name="choice"]:checked');
+    const ansDiv = document.getElementById('mcqAnswer');
+    ansDiv.innerHTML = '';
+    if(!choice){ ansDiv.innerHTML = '<div class="wrong">Sila pilih jawapan dahulu.</div>'; return; }
+    const sel = parseInt(choice.value,10);
+    if(sel === item.answer){
+      ansDiv.innerHTML = `<div class="answer">Betul! <br><strong>Jawapan:</strong> ${String.fromCharCode(65+item.answer)}. ${item.options[item.answer]}<br><em>${item.explain}</em></div>`;
+    } else {
+      ansDiv.innerHTML = `<div class="wrong">Salah. <br><strong>Jawapan Betul:</strong> ${String.fromCharCode(65+item.answer)}. ${item.options[item.answer]}<br><em>${item.explain}</em></div>`;
+    }
+  }
+
+  // navigation
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    if(current>0){ current--; renderPage(current); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    if(current < pageCount-1){ current++; renderPage(current); }
+  });
+
+  // initial render
+  renderPage(0);
+  </script>
+</body>
+</html>
